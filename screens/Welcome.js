@@ -1,29 +1,29 @@
-import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { Alert } from 'react-native'; // For displaying alerts
-import { getSession, logout } from '../utils/SupabaseClient.js'; // Import the logout function
+import { StatusBar } from "expo-status-bar";
+import React from "react";
+import { Alert } from "react-native"; // For displaying alerts
 import {
-  WelcomeImage,
-  PageTitle,
-  SubTitle,
-  StyledFormArea,
-  StyledButton,
-  InnerContainer,
-  WelcomeContainer,
   ButtonText,
+  InnerContainer,
   Line,
-} from '../components/styles.js';
+  PageTitle,
+  StyledButton,
+  StyledFormArea,
+  WelcomeContainer,
+} from "../components/styles.js";
+import { logout } from "../utils/SupabaseClient.js"; // Import the logout function
 
-const Welcome = ({ route, navigation}) => {
-
+const Welcome = ({ route, navigation }) => {
   const { name } = route.params;
 
   const handleLogout = async () => {
     try {
       await logout(); // Call the logout function
-      navigation.navigate('Login'); // Navigate to Login screen
+      navigation.navigate("Login"); // Navigate to Login screen
     } catch (error) {
-      Alert.alert('Logout Error', 'There was an error logging out. Please try again.');
+      Alert.alert(
+        "Logout Error",
+        "There was an error logging out. Please try again."
+      );
     }
   };
 
@@ -38,8 +38,11 @@ const Welcome = ({ route, navigation}) => {
             <StyledButton onPress={handleLogout}>
               <ButtonText>Logout</ButtonText>
             </StyledButton>
-            <StyledButton onPress={() => navigation.navigate('Game')}>
+            <StyledButton onPress={() => navigation.navigate("Game")}>
               <ButtonText>Enter Game</ButtonText>
+            </StyledButton>
+            <StyledButton onPress={() => navigation.navigate("Game")}>
+              <ButtonText> Check Score</ButtonText>
             </StyledButton>
           </StyledFormArea>
         </WelcomeContainer>

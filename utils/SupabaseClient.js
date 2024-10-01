@@ -5,9 +5,9 @@ import { AppState } from "react-native";
 import { makeRedirectUri } from "expo-auth-session";
 
 // Supabase configuration
-const supabaseUrl = "https://xkrminakzvystwqxforu.supabase.co";
+const supabaseUrl = "https://kljnqgerjajubfnnkfrq.supabase.co";
 const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrcm1pbmFrenZ5c3R3cXhmb3J1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjc2Njg5ODEsImV4cCI6MjA0MzI0NDk4MX0.2oUDPhemOjAqg5BJ2EWeRRklasp_Sa-SN3o882YzMAs"; // Ensure this key has the required permissions
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsam5xZ2VyamFqdWJmbm5rZnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjUzNzg2NTYsImV4cCI6MjA0MDk1NDY1Nn0.GUCFMybASIOeaiqFc84WSF80HbtPknbr62Vp8578IhQ"; // Ensure this key has the required permissions
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
@@ -108,6 +108,7 @@ export const signup = async (
       password: password,
       options: {
         data: {
+          email: email,
           username: username,
           full_name: full_name,
           nationality: nationality,
@@ -129,49 +130,94 @@ export const signup = async (
 
     const { user } = data;
 
-    // const { error: profileError } = await supabase
-    //   .from('account')
-    //   .update({ full_name: full_name })
-    //   .eq('user_id', user.id);
+    // Insert user data into the profiles table
+    const { error: insertError } = await supabase.from("profiles").insert([
+      {
+        email: email,
+        full_name: full_name,
+        username: username,
+        nationality: nationality,
+        age: age,
+        gender: gender,
+        education: education,
+        employment: employment,
+        marital_status: maritalStatus,
+        residence: residence,
+      },
+    ]);
 
-    // if (profileError) {
-    //   console.error('Error saving profile:', profileError.message);
-    //   return { error: profileError.message };
-    // }
+    if (insertError) {
+      console.error("Error saving profile:", insertError.message);
+      return { error: insertError.message };
+    }
 
     console.log("User signed up and profile saved:", user);
     return { user: data.user, session: data.session };
   } catch (error) {
-    console.error("Error during sign up:", error);
-    return { error: "An error occurred during sign up" };
+    console.error("Error during sign up:", error.message);
+    return { error: error.message };
   }
 };
 
 // Login function
 export const login = async (email, password) => {
   try {
+    // Attempt to sign in with email and password
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+
+    // Handle any errors during sign-in
     if (error) {
       console.error("Error logging in:", error.message);
       return { error };
     }
+
+    // Check if a session was created
     if (data.session) {
       await storeData("userSession", JSON.stringify(data.session));
+      console.log("User logged in:", data.session);
     } else {
       console.warn("No session found");
     }
+
     const { user } = data;
-    const { data: profile, error: profileError } = await supabase
-      .from("account")
-      .select("full_name")
-      .eq("user_id", user.id)
+    console.log("User Email:", user.email);
+
+    // Check if the profile exists based on the email
+    const { data: profileCheck, error: checkError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("email", email) // Check for a matching profile by email
       .single();
-    if (profileError) {
-      throw profileError;
+
+    if (checkError) {
+      console.error("Error checking profile existence:", checkError.message);
+      return { error: checkError.message };
+    } else {
+      console.log("Profile found for email:", profileCheck);
     }
+
+    if (!profileCheck) {
+      console.warn("Profile not found for email:", user.email);
+      return { error: "Profile not found." };
+    }
+
+    // Retrieve the user profile from the profiles table based on email
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("email", user.email) // Ensure you are using the correct email field
+      .single();
+
+    // Handle any errors during profile retrieval
+    if (profileError) {
+      console.error("Error retrieving profile:", profileError.message);
+      return { error: profileError.message };
+    }
+
+    // Now you can safely access full_name
     return { user: data.user, session: data.session, profile };
   } catch (error) {
     console.error("Error during login:", error);
@@ -202,7 +248,7 @@ export const getSession = async () => {
     const session = await retrieveData("userSession");
     return session ? JSON.parse(session) : null;
   } catch (error) {
-    console.error("Error retrieving session:", error);
+    console.error("Error retrieving session:", error.message);
     return null;
   }
 };
@@ -219,7 +265,7 @@ export const recordGameData = async (userId, gameData) => {
     }
     console.log("Game data recorded:", data);
   } catch (error) {
-    console.error("Error during game data recording:", error);
+    console.error("Error during game data recording:", error.message);
   }
 };
 
