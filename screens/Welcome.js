@@ -13,7 +13,9 @@ import {
 import { logout } from "../utils/SupabaseClient.js"; // Import the logout function
 
 const Welcome = ({ route, navigation }) => {
-  const { name } = route.params;
+  const { profile } = route.params;
+
+  // Use useEffect to wait for profile and log it when available
 
   const handleLogout = async () => {
     try {
@@ -32,16 +34,18 @@ const Welcome = ({ route, navigation }) => {
       <StatusBar style="light" />
       <InnerContainer>
         <WelcomeContainer>
-          <PageTitle welcome={true}>Welcome {name} !</PageTitle>
+          <PageTitle welcome={true}>Welcome {profile.full_name} !</PageTitle>
           <StyledFormArea>
             <Line />
             <StyledButton onPress={handleLogout}>
               <ButtonText>Logout</ButtonText>
             </StyledButton>
-            <StyledButton onPress={() => navigation.navigate("Game")}>
+            <StyledButton
+              onPress={() => navigation.navigate("Game", { profile: profile })}
+            >
               <ButtonText>Enter Game</ButtonText>
             </StyledButton>
-            <StyledButton onPress={() => navigation.navigate("Game")}>
+            <StyledButton onPress={() => navigation.navigate("Score")}>
               <ButtonText> Check Score</ButtonText>
             </StyledButton>
           </StyledFormArea>

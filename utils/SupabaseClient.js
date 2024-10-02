@@ -162,6 +162,10 @@ export const signup = async (
 // Login function
 export const login = async (email, password) => {
   try {
+    if (!email || !password) {
+      return new Error("Please fill the required fields."); // Return an error object
+    }
+
     // Attempt to sign in with email and password
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -170,7 +174,7 @@ export const login = async (email, password) => {
 
     // Handle any errors during sign-in
     if (error) {
-      console.error("Error logging in:", error.message);
+      console.error("Error logging in:", error);
       return { error };
     }
 
@@ -194,9 +198,9 @@ export const login = async (email, password) => {
 
     if (checkError) {
       console.error("Error checking profile existence:", checkError.message);
-      return { error: checkError.message };
+      return { error: checkError };
     } else {
-      console.log("Profile found for email:", profileCheck);
+      console.log("Profile found for email:", profileCheck.email);
     }
 
     if (!profileCheck) {
@@ -207,14 +211,14 @@ export const login = async (email, password) => {
     // Retrieve the user profile from the profiles table based on email
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("full_name")
+      .select("*")
       .eq("email", user.email) // Ensure you are using the correct email field
       .single();
 
     // Handle any errors during profile retrieval
     if (profileError) {
       console.error("Error retrieving profile:", profileError.message);
-      return { error: profileError.message };
+      return { error: profileError };
     }
 
     // Now you can safely access full_name
@@ -293,6 +297,59 @@ export const syncGameData = async () => {
     }
   } catch (error) {
     console.error("Error syncing game data:", error);
+  }
+};
+
+export const saveGameStatsFunction = async (stats) => {
+  const {
+    user_email,
+
+    wins,
+    losses,
+    total_clicks,
+    time_between_clicks,
+    click_order,
+    game_duration,
+  } = stats;
+
+  // Format game_duration to a suitable format for INTERVAL (e.g., 'HH:MM:SS')
+
+  const gameStats = {
+    user_email,
+
+    wins,
+    losses,
+    total_clicks,
+    time_between_clicks, // Assuming this is an array of numbers
+    click_order, // Assuming this is an array of strings
+    game_duration,
+  };
+
+  const { data, error } = await supabase.from("game_stats").insert([gameStats]);
+
+  if (error) {
+    console.error("Error saving game stats:", error);
+    return new Error("Error saving game stats:", error);
+  } else {
+    console.log("Game stats saved:");
+    return "Game stats saved";
+  }
+};
+
+// Get game statistics for the current user
+
+export const getGameStatsByEmail = async (email) => {
+  const { data, error } = await supabase
+    .from("game_stats")
+    .select("*")
+    .eq("user_email", email); // Filter by user_email
+
+  if (error) {
+    console.error("Error fetching game stats:", error);
+    return new Error("Error fetching game stats:", error);
+  } else {
+    console.log("Fetched game stats:");
+    return data; // Return the fetched data
   }
 };
 

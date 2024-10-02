@@ -9,6 +9,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 // Screens
 import Game from "../screens/Game";
 import Login from "../screens/Login";
+import ScoreScreen from "../screens/Score";
 import Signup from "../screens/Signup";
 import Verified from "../screens/Verified";
 import Welcome from "../screens/Welcome";
@@ -37,6 +38,7 @@ const RootStack = () => {
         <Stack.Screen name="Welcome" component={Welcome} />
         <Stack.Screen name="Game" component={Game} />
         <Stack.Screen name="Verified" component={Verified} />
+        <Stack.Screen name="Score" component={ScoreScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

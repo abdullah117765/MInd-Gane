@@ -1,71 +1,78 @@
-import React, { useState, useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
-import { Formik } from 'formik';
+import { StatusBar } from "expo-status-bar";
+import { Formik } from "formik";
+import React, { useEffect, useState } from "react";
+import { View } from "react-native";
 
 // Icons
-import { Octicons, Ionicons } from '@expo/vector-icons';
+import { Ionicons, Octicons } from "@expo/vector-icons";
 
 // Styled Components
 import {
-  StyledContainer,
+  ButtonText,
+  ExtraText,
+  ExtraView,
   InnerContainer,
+  LeftIcon,
+  Line,
+  MsgBox,
   PageLogo,
   PageTitle,
-  SubTitle,
+  RightIcon,
+  StyledButton,
+  StyledContainer,
   StyledFormArea,
   StyledInputLabel,
   StyledTextInput,
-  LeftIcon,
-  StyledButton,
-  ButtonText,
-  MsgBox,
-  Line,
-  ExtraText,
-  ExtraView,
+  SubTitle,
   TextLink,
   TextLinkContent,
-  RightIcon
-} from '../components/styles.js';
+} from "../components/styles.js";
 
 // Colors
-import { Colors } from '../components/styles.js'; // Ensure this import is correct
+import { Colors } from "../components/styles.js"; // Ensure this import is correct
 const { darkLight, brand } = Colors;
 
 // Supabase and AsyncStorage
-import { login, syncGameData } from '../utils/SupabaseClient.js';
+import { login, syncGameData } from "../utils/SupabaseClient.js";
 
-import { useAuthRedirect } from '../hooks/AuthRedirect.js';
+import { useAuthRedirect } from "../hooks/AuthRedirect.js";
 
 const Login = ({ navigation }) => {
   const [hidePassword, setHidePassword] = useState(true);
   const [message, setMessage] = useState();
   const [messageType, setMessageType] = useState();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   useAuthRedirect();
 
   const handleLogin = async (values) => {
     setMessage(null);
     setMessageType(null);
+
+    if (!values.email || !values.password) {
+      setMessage("Please fill in all fields"); // checking on both frontned and backend
+      setMessageType("error");
+      return;
+    }
     try {
       const { profile } = await login(values.email, values.password);
-      console.log('Logged in user:', profile);
+
+      console.log("Logged in user:", profile.full_name);
       await syncGameData(); // Sync any cached game data after login
-      navigation.navigate("Welcome", { name: profile.full_name });
+      navigation.navigate("Welcome", { profile: profile });
     } catch (error) {
       setMessage(error.message);
-      setMessageType('error');
+      setMessageType("error");
     }
   };
 
   // Make useEffect to check if user is logged in
   useEffect(() => {
     const checkUser = async () => {
-      console.log('Checking user...');
-      console.log('Email:', email);
-      console.log('Password:', password);
+      console.log("Checking user...");
+      console.log("Email:", email);
+      console.log("Password:", password);
     };
     checkUser();
   }, [email, password]);
@@ -74,15 +81,12 @@ const Login = ({ navigation }) => {
     <StyledContainer>
       <StatusBar style="dark" />
       <InnerContainer>
-        <PageLogo
-          resizeMode="cover"
-          source={require('../assets/image1.png')}
-        />
+        <PageLogo resizeMode="cover" source={require("../assets/image1.png")} />
         <PageTitle>Memory Game</PageTitle>
         <SubTitle>Account Login</SubTitle>
 
         <Formik
-          initialValues={{ email: '', password: '' }}
+          initialValues={{ email: "", password: "" }}
           onSubmit={(values) => handleLogin(values)}
         >
           {({ handleChange, handleBlur, handleSubmit, values }) => (
@@ -92,10 +96,10 @@ const Login = ({ navigation }) => {
                 placeholder="Email@gmail.com"
                 placeholderTextColor={darkLight}
                 onChangeText={(text) => {
-                  handleChange('email')(text);
+                  handleChange("email")(text);
                   setEmail(text);
                 }}
-                onBlur={handleBlur('email')}
+                onBlur={handleBlur("email")}
                 value={values.email}
                 keyboardType="email-address"
                 icon="mail"
@@ -106,10 +110,10 @@ const Login = ({ navigation }) => {
                 placeholderTextColor={darkLight}
                 icon="lock"
                 onChangeText={(text) => {
-                  handleChange('password')(text);
+                  handleChange("password")(text);
                   setPassword(text);
                 }}
-                onBlur={handleBlur('password')}
+                onBlur={handleBlur("password")}
                 value={values.password}
                 secureTextEntry={hidePassword}
                 isPassword={true}
@@ -136,7 +140,14 @@ const Login = ({ navigation }) => {
 };
 
 // MyTextInput Component
-const MyTextInput = ({ label, icon, isPassword, hidePassword, setHidePassword, ...props }) => {
+const MyTextInput = ({
+  label,
+  icon,
+  isPassword,
+  hidePassword,
+  setHidePassword,
+  ...props
+}) => {
   return (
     <View>
       <LeftIcon>
@@ -146,7 +157,11 @@ const MyTextInput = ({ label, icon, isPassword, hidePassword, setHidePassword, .
       <StyledTextInput {...props} />
       {isPassword && (
         <RightIcon onPress={() => setHidePassword(!hidePassword)}>
-          <Ionicons name={hidePassword ? 'eye-off' : 'eye'} size={30} color={darkLight} />
+          <Ionicons
+            name={hidePassword ? "eye-off" : "eye"}
+            size={30}
+            color={darkLight}
+          />
         </RightIcon>
       )}
     </View>
