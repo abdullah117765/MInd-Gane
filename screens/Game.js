@@ -68,6 +68,7 @@ export default function Game({ route, navigation }) {
   const [timer, setTimer] = useState(20); // initial 90
   const [totalClicks, setTotalClicks] = useState(0);
   const clickTimes = useRef([]); //track time between clicks
+  const clickTimes2 = useRef([]); //track time between clicks
   const clickOrder = useRef([]); // track order of clicks
   const gameStartTime = useRef(null);
   const gameEndTime = useRef(null);
@@ -112,6 +113,11 @@ export default function Game({ route, navigation }) {
   }, [selectedCards, cards]);
 
   const startGame = () => {
+    if (FCount.current != 0 && clickTimes.current.length > 0) {
+      losses += 1;
+      gameEndTime.current = new Date();
+      saveGameStats2(); // save stats if restarted game in the middle of the game
+    }
     console.log("Starting game...");
     // Clear any existing timer interval before starting a new one
     if (timerIntervalRef.current) {
@@ -129,7 +135,10 @@ export default function Game({ route, navigation }) {
     setTotalClicks(0);
     FCount.current = 0;
     clickTimes.current = [];
+    clickTimes2.current = [];
     clickOrder.current = [];
+    wins = 0;
+    losses = 0;
 
     const timerDelay = setTimeout(() => {
       startTimer();
@@ -147,13 +156,18 @@ export default function Game({ route, navigation }) {
 
     const now = new Date();
     // Track the time of the click
+    console.log("now", now);
+    if (clickTimes.current.length > 1) {
+      const difference =
+        clickTimes2.current[clickTimes2.current.length - 1] -
+        clickTimes2.current[clickTimes2.current.length - 2]; // difference in milliseconds
 
-    if (clickTimes.current.length > 0) {
-      const timeDiff =
-        (now - clickTimes.current[clickTimes.current.length - 1]) / 1000;
-      clickTimes.current.push(timeDiff);
+      const seconds = Math.floor(difference / 1000);
+      clickTimes.current.push(seconds);
+      clickTimes2.current.push(now);
     } else {
-      clickTimes.current.push(0);
+      clickTimes.current.push(0); // this store the difference in time
+      clickTimes2.current.push(now); // this stores time
     }
 
     clickOrder.current.push(cards[index].name);
