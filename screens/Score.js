@@ -81,9 +81,9 @@ const Score = () => {
       <FlatList
         data={gameStats}
         keyExtractor={(item) => item.game_id.toString()}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <GameCard>
-            <GameTitle>Game {item.game_id}</GameTitle>
+            <GameTitle>Game {index + 1}</GameTitle>
 
             <GameDetail>
               <DetailLabel>🔥 Total Clicks:</DetailLabel>

@@ -65,7 +65,7 @@ const SignupScreen = ({ navigation }) => {
       email == "" ||
       password == "" ||
       fullName == "" ||
-      username ||
+      username == "" ||
       nationality == "" ||
       age == "" ||
       gender == "" ||
@@ -74,7 +74,7 @@ const SignupScreen = ({ navigation }) => {
       maritalStatus == "" ||
       residence == ""
     ) {
-      setError("Please fill in all fields"); // checking on both frontned and backend
+      setError("please fill all the field"); // checking on both frontned and backend
 
       return;
     }

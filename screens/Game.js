@@ -65,7 +65,7 @@ export default function Game({ route, navigation }) {
   const [selectedCards, setSelectedCards] = useState([]);
   const [matchedPairs, setMatchedPairs] = useState(0);
   const [message, setMessage] = useState("");
-  const [timer, setTimer] = useState(20); // initial 90
+  const [timer, setTimer] = useState(90); // initial 90
   const [totalClicks, setTotalClicks] = useState(0);
   const clickTimes = useRef([]); //track time between clicks
   const clickTimes2 = useRef([]); //track time between clicks
@@ -125,7 +125,7 @@ export default function Game({ route, navigation }) {
     }
 
     // Reset the timer to the initial value
-    setTimer(20); // was 90 seconds
+    setTimer(90); // was 90 seconds
 
     // Reset other game state variables
     setCards(generateInitialCards());
