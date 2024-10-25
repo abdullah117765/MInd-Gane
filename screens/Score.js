@@ -186,6 +186,19 @@ const Score = () => {
               <DetailValue>{formatTime(item.game_duration)}</DetailValue>
             </GameDetail>
 
+            <GameDetail>
+              <DetailLabel>⌛ Game Status:</DetailLabel>
+              <DetailValue>
+                {item.win
+                  ? "Win"
+                  : item.losses
+                  ? "Loss"
+                  : item.incomplete
+                  ? "Incomplete"
+                  : "N/A"}
+              </DetailValue>
+            </GameDetail>
+
             <Line />
           </GameCard>
         )}

@@ -238,7 +238,19 @@ export const logout = async () => {
       console.error("Error logging out:", error.message);
       return { error };
     }
-    console.log("User logged out");
+
+    // Update the is_boring field to true for the user in the profiles table
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ is_boring: true }) // Set is_boring to true
+      .eq("email", loginUserEmail); // Filter by user ID
+
+    if (updateError) {
+      console.error("Error updating is_boring field:", updateError.message);
+      return { error: updateError };
+    }
+
+    console.log("User logged out and is_boring updated to true");
     await AsyncStorage.removeItem("userSession");
     return {};
   } catch (error) {

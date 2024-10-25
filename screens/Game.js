@@ -1,4 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { Audio } from "expo-av";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Image,
   Modal,
@@ -8,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { saveGameStatsFunction } from "../utils/SupabaseClient.js";
+const backgroundMusicSource = require("../assets/sounds/background-music.mp3");
 const actionImageSources = {
   Acar: require("../assets/Acarbose.png"),
   Piog: require("../assets/Pioglitazone.png"),
@@ -81,6 +84,11 @@ export default function Game({ route, navigation }) {
 
   const timerIntervalRef = useRef(null);
 
+  // Refs for the sounds
+  const matchSoundRef = useRef(null);
+  const noMatchSoundRef = useRef(null);
+  const backgroundMusic = useRef(null);
+
   const { profile } = route.params; // this is the user profile from the login screen, profile.full_name is the user's name, profile.email is the user's email profile.email is the user's email
 
   useEffect(() => {
@@ -104,10 +112,12 @@ export default function Game({ route, navigation }) {
         cards[firstCard].isAction !== cards[secondCard].isAction
       ) {
         setMatchedPairs((prev) => prev + 1);
+        playSound(matchSoundRef.current); // Play the match sound
         setMessage("Correct match!");
         checkGameEnd();
       } else {
         setTimeout(() => {
+          playSound(noMatchSoundRef.current); // Play the no-match sound
           flipBackSelectedCards();
           setMessage("Incorrect match. Try again.");
         }, 1000);
@@ -115,7 +125,96 @@ export default function Game({ route, navigation }) {
     }
   }, [selectedCards, cards]);
 
+  // Load sounds once when the component mounts
+  useEffect(() => {
+    loadSounds();
+    return () => {
+      unloadSounds(); // Clean up sounds when the component unmounts
+    };
+  }, []);
+
+  // Unload background music when component is unmounted to release resources
+  useEffect(() => {
+    return () => {
+      if (backgroundMusic.current) {
+        backgroundMusic.current.unloadAsync();
+      }
+    };
+  }, []);
+
+  const loadSounds = async () => {
+    const { sound: matchSound } = await Audio.Sound.createAsync(
+      require("../assets/sounds/match.mp3")
+    );
+    const { sound: noMatchSound } = await Audio.Sound.createAsync(
+      require("../assets/sounds/no-match.mp3")
+    );
+    matchSoundRef.current = matchSound;
+    noMatchSoundRef.current = noMatchSound;
+  };
+
+  const unloadSounds = async () => {
+    if (matchSoundRef.current) {
+      await matchSoundRef.current.unloadAsync();
+    }
+    if (noMatchSoundRef.current) {
+      await noMatchSoundRef.current.unloadAsync();
+    }
+  };
+
+  const playSound = async (sound) => {
+    if (sound) {
+      try {
+        await sound.replayAsync();
+      } catch (error) {
+        console.error("Error playing sound:", error);
+      }
+    }
+  };
+
+  // Load and play background music when game starts or restarts
+  const playBackgroundMusic = async () => {
+    if (!backgroundMusic.current) {
+      const { sound } = await Audio.Sound.createAsync(backgroundMusicSource, {
+        isLooping: true, // Ensures the background music loops
+      });
+      backgroundMusic.current = sound;
+    }
+
+    await backgroundMusic.current.playAsync();
+  };
+
+  // Stop background music
+  const stopBackgroundMusic = async () => {
+    if (backgroundMusic.current) {
+      await backgroundMusic.current.stopAsync();
+    }
+  };
+
+  // Detect when the user navigates away from the game screen
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        // The game was incomplete when the user navigated away
+        handleIncompleteGame();
+      };
+    }, [])
+  );
+
+  const handleIncompleteGame = () => {
+    incomplete += 1;
+    gameEndTime.current = new Date();
+    console.log("incomlete", incomplete);
+    saveGameStats2();
+  };
+
   const startGame = () => {
+    // Stop existing background music if restarting the game
+    stopBackgroundMusic();
+
+    // Play background music at the start of the game
+    playBackgroundMusic();
+
     if (FCount.current != 0 && clickTimes.current.length > 0) {
       incomplete += 1;
       gameEndTime.current = new Date();
@@ -210,6 +309,7 @@ export default function Game({ route, navigation }) {
       gameEndTime.current = new Date();
       // +1 because setMatchedPairs is async
       setMessage("Congratulations! You matched all pairs.");
+      stopBackgroundMusic(); // Stop the background music on game completion
       clearInterval(timerIntervalRef.current); // Stop the timer
       saveGameStats2(); // Save win stats   you win saving the stats to supabase
     }
