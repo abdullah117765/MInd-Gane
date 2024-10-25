@@ -9,6 +9,7 @@ const supabaseUrl = "https://kljnqgerjajubfnnkfrq.supabase.co";
 const supabaseKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsam5xZ2VyamFqdWJmbm5rZnJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjUzNzg2NTYsImV4cCI6MjA0MDk1NDY1Nn0.GUCFMybASIOeaiqFc84WSF80HbtPknbr62Vp8578IhQ"; // Ensure this key has the required permissions
 
+let loginUserEmail = "";
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     storage: AsyncStorage,
@@ -163,7 +164,7 @@ export const signup = async (
 export const login = async (email, password) => {
   try {
     if (!email || !password) {
-      return new Error("Please fill the required fields."); // Return an error object
+      return { error: "Please fill the required fields." };
     }
 
     // Attempt to sign in with email and password
@@ -175,7 +176,7 @@ export const login = async (email, password) => {
     // Handle any errors during sign-in
     if (error) {
       console.error("Error logging in:", error);
-      return { error };
+      return { error: error.message };
     }
 
     // Check if a session was created
@@ -198,8 +199,9 @@ export const login = async (email, password) => {
 
     if (checkError) {
       console.error("Error checking profile existence:", checkError.message);
-      return { error: checkError };
+      return { error: checkError.message };
     } else {
+      loginUserEmail = profileCheck.email;
       console.log("Profile found for email:", profileCheck.email);
     }
 
@@ -218,14 +220,13 @@ export const login = async (email, password) => {
     // Handle any errors during profile retrieval
     if (profileError) {
       console.error("Error retrieving profile:", profileError.message);
-      return { error: profileError };
+      return { error: profileError.message };
     }
 
     // Now you can safely access full_name
     return { user: data.user, session: data.session, profile };
   } catch (error) {
-    console.error("Error during login:", error);
-    return { error };
+    return { error: error.message };
   }
 };
 
@@ -302,8 +303,9 @@ export const syncGameData = async () => {
 
 export const saveGameStatsFunction = async (stats) => {
   const {
+    user,
     user_email,
-
+    incomplete,
     wins,
     losses,
     total_clicks,
@@ -315,8 +317,9 @@ export const saveGameStatsFunction = async (stats) => {
   // Format game_duration to a suitable format for INTERVAL (e.g., 'HH:MM:SS')
 
   const gameStats = {
+    user: user,
     user_email,
-
+    incomplete,
     wins,
     losses,
     total_clicks,
@@ -338,11 +341,11 @@ export const saveGameStatsFunction = async (stats) => {
 
 // Get game statistics for the current user
 
-export const getGameStatsByEmail = async (email) => {
+export const getGameStatsByEmail = async () => {
   const { data, error } = await supabase
     .from("game_stats")
     .select("*")
-    .eq("user_email", email); // Filter by user_email
+    .eq("user_email", loginUserEmail); // Filter by user_email
 
   if (error) {
     console.error("Error fetching game stats:", error);

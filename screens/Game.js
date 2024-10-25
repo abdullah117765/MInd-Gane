@@ -69,13 +69,15 @@ export default function Game({ route, navigation }) {
   const [totalClicks, setTotalClicks] = useState(0);
   const clickTimes = useRef([]); //track time between clicks
   const clickTimes2 = useRef([]); //track time between clicks
-  const clickOrder = useRef([]); // track order of clicks
+  const clickOrder = useRef({}); // track order of clicks
   const gameStartTime = useRef(null);
   const gameEndTime = useRef(null);
   let wins = 0;
   let losses = 0;
+  let incomplete = 0;
   const FCount = useRef(0);
   const userEmail = useRef(null);
+  const user = useRef(null);
 
   const timerIntervalRef = useRef(null);
 
@@ -84,6 +86,7 @@ export default function Game({ route, navigation }) {
   useEffect(() => {
     if (profile) {
       userEmail.current = profile.email;
+      user.current = profile.id;
     }
   }, [profile]);
 
@@ -114,7 +117,7 @@ export default function Game({ route, navigation }) {
 
   const startGame = () => {
     if (FCount.current != 0 && clickTimes.current.length > 0) {
-      losses += 1;
+      incomplete += 1;
       gameEndTime.current = new Date();
       saveGameStats2(); // save stats if restarted game in the middle of the game
     }
@@ -136,9 +139,10 @@ export default function Game({ route, navigation }) {
     FCount.current = 0;
     clickTimes.current = [];
     clickTimes2.current = [];
-    clickOrder.current = [];
+    clickOrder.current = {};
     wins = 0;
     losses = 0;
+    incomplete = 0;
 
     const timerDelay = setTimeout(() => {
       startTimer();
@@ -170,7 +174,16 @@ export default function Game({ route, navigation }) {
       clickTimes2.current.push(now); // this stores time
     }
 
-    clickOrder.current.push(cards[index].name);
+    const cardName = cards[index].name;
+
+    // Check if clickOrder.current[cardName] exists, if not, initialize it as an empty array
+    if (!clickOrder.current[cardName]) {
+      clickOrder.current[cardName] = [];
+    }
+
+    clickOrder.current[cardName].push(totalClicks + 1);
+
+    // clickOrder.current.push(cards[index].name);
 
     setSelectedCards((prev) => [...prev, index]);
     setCards((prevCards) => {
@@ -232,9 +245,11 @@ export default function Game({ route, navigation }) {
 
     const stats = {
       user_email: userEmail.current,
+      user: user.current,
       // total_games_played: 1,
       wins: wins,
       losses: losses,
+      incomplete: incomplete,
       total_clicks: FCount.current,
       time_between_clicks: clickTimes.current,
       click_order: clickOrder.current,

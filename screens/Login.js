@@ -56,12 +56,19 @@ const Login = ({ navigation }) => {
       return;
     }
     try {
-      const { profile } = await login(values.email, values.password);
-
-      console.log("Logged in user:", profile.full_name);
+      const { profile, error } = await login(values.email, values.password);
+      console.log("error", profile);
+      // console.log("Logged in user:", profile.full_name);
       await syncGameData(); // Sync any cached game data after login
+      if (error) {
+        setMessage(error);
+        setMessageType("error");
+        return;
+      }
+
       navigation.navigate("Welcome", { profile: profile });
     } catch (error) {
+      console.log("dbd error", error.message);
       setMessage(error.message);
       setMessageType("error");
     }

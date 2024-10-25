@@ -8,13 +8,13 @@ const Score = () => {
   const [gameStats, setGameStats] = useState([]);
   const [totalWins, setTotalWins] = useState(0);
   const [totalLosses, setTotalLosses] = useState(0);
+  const [incomplete, setIncomplete] = useState(0);
   const [showMoreTimeBetween, setShowMoreTimeBetween] = useState({});
   const [showMoreClickOrder, setShowMoreClickOrder] = useState({});
 
   useEffect(() => {
     const getGameStats = async () => {
-      const email = "axiomshah@gmail.com"; // Replace with dynamic email
-      const fetchedStats = await getGameStatsByEmail(email);
+      const fetchedStats = await getGameStatsByEmail();
 
       if (fetchedStats instanceof Error) {
         console.error("Error fetching game stats:", fetchedStats);
@@ -22,6 +22,9 @@ const Score = () => {
         setGameStats(fetchedStats);
         setTotalWins(fetchedStats.filter((stat) => stat.wins === 1).length);
         setTotalLosses(fetchedStats.filter((stat) => stat.losses === 1).length);
+        setIncomplete(
+          fetchedStats.filter((stat) => stat.incomplete === 1).length
+        );
       }
     };
 
@@ -43,6 +46,12 @@ const Score = () => {
     }
   };
 
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.round(seconds % 60); // Round off the seconds
+    return `${mins} min : ${secs} sec`;
+  }
+
   return (
     <StyledContainer>
       <PageTitle>🎮 Player Statistics</PageTitle>
@@ -54,14 +63,14 @@ const Score = () => {
             <Ionicons name="football" size={30} color="#ffcc00" />
           </StatIcon>
           <StatText>Total Games</StatText>
-          <StatBadge>{totalWins + totalLosses}</StatBadge>
+          <StatBadge>{totalWins + totalLosses + incomplete}</StatBadge>
         </StatItem>
 
         <StatItem>
           <StatIcon>
             <Ionicons name="trophy" size={30} color="#ffcc00" />
           </StatIcon>
-          <StatText>Total Wins</StatText>
+          <StatText> Wins</StatText>
           <StatBadge>{totalWins}</StatBadge>
         </StatItem>
 
@@ -69,8 +78,16 @@ const Score = () => {
           <StatIcon>
             <Ionicons name="skull" size={30} color="#ff4d4d" />
           </StatIcon>
-          <StatText>Total Losses</StatText>
+          <StatText>Losses</StatText>
           <StatBadge>{totalLosses}</StatBadge>
+        </StatItem>
+
+        <StatItem>
+          <StatIcon>
+            <Ionicons name="cart" size={30} color="#ff4d4d" />
+          </StatIcon>
+          <StatText>Incomplete</StatText>
+          <StatBadge>{incomplete}</StatBadge>
         </StatItem>
       </StatsSummary>
 
@@ -116,14 +133,42 @@ const Score = () => {
             <GameDetail>
               <DetailLabel>🔄 Click Order:</DetailLabel>
               <ArrayContainer>
-                {(showMoreClickOrder[item.game_id]
-                  ? item.click_order
-                  : item.click_order.slice(0, 5)
-                ).map((click, index) => (
-                  <ArrayItem key={index}>{click}</ArrayItem>
-                ))}
+                {(() => {
+                  let parsedClickOrder = item.click_order;
+
+                  // Attempt to parse the click_order if it's in JSON format
+                  try {
+                    parsedClickOrder = JSON.parse(item.click_order);
+                  } catch (error) {
+                    // It's not JSON, so handle it as a comma-separated string
+                    parsedClickOrder = item.click_order
+                      .replace(/[{}]/g, "") // Remove curly braces
+                      .split(","); // Split into array
+                  }
+
+                  // Now handle both object and array cases
+                  if (Array.isArray(parsedClickOrder)) {
+                    // Handle the comma-separated string case
+                    return parsedClickOrder.map((click, index) => (
+                      <ArrayItem key={index}>{click}</ArrayItem>
+                    ));
+                  } else if (typeof parsedClickOrder === "object") {
+                    // Handle the object case
+                    return Object.keys(parsedClickOrder).map((key, index) => {
+                      const clicks = parsedClickOrder[key];
+                      return (
+                        <ArrayItem key={index}>
+                          {key} ={" "}
+                          {Array.isArray(clicks)
+                            ? clicks.join(", ")
+                            : "No valid data"}
+                        </ArrayItem>
+                      );
+                    });
+                  }
+                })()}
               </ArrayContainer>
-              {item.click_order.length > 5 && (
+              {Object.keys(item.click_order).length > 5 && (
                 <ToggleButton
                   onPress={() => toggleShowMore(item.game_id, "clickOrder")}
                 >
@@ -138,7 +183,7 @@ const Score = () => {
 
             <GameDetail>
               <DetailLabel>⌛ Game Duration:</DetailLabel>
-              <DetailValue>{item.game_duration}</DetailValue>
+              <DetailValue>{formatTime(item.game_duration)}</DetailValue>
             </GameDetail>
 
             <Line />

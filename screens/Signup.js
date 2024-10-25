@@ -98,6 +98,11 @@ const SignupScreen = ({ navigation }) => {
       residence
     );
 
+    if (error) {
+      setError(error);
+      return;
+    }
+
     if (user) {
       // Handle successful signup
       Alert.alert("Success", "Account created successfully");
