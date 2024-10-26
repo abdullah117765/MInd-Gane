@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import { FlatList, TouchableOpacity } from "react-native";
+import { FlatList, Text, TouchableOpacity } from "react-native";
 import styled from "styled-components/native";
 import { getGameStatsByEmail } from "../utils/SupabaseClient.js";
 
@@ -11,7 +11,7 @@ const Score = () => {
   const [incomplete, setIncomplete] = useState(0);
   const [showMoreTimeBetween, setShowMoreTimeBetween] = useState({});
   const [showMoreClickOrder, setShowMoreClickOrder] = useState({});
-
+  const [showMoreClickOrder2, setShowMoreClickOrder2] = useState({});
   useEffect(() => {
     const getGameStats = async () => {
       const fetchedStats = await getGameStatsByEmail();
@@ -40,6 +40,11 @@ const Score = () => {
       }));
     } else if (type === "clickOrder") {
       setShowMoreClickOrder((prev) => ({
+        ...prev,
+        [gameId]: !prev[gameId],
+      }));
+    } else if (type === "clickOrder2") {
+      setShowMoreClickOrder2((prev) => ({
         ...prev,
         [gameId]: !prev[gameId],
       }));
@@ -125,6 +130,48 @@ const Score = () => {
                     {showMoreTimeBetween[item.game_id]
                       ? "Show Less"
                       : "Show More"}
+                  </ButtonText>
+                </ToggleButton>
+              )}
+            </GameDetail>
+
+            <GameDetail>
+              <DetailLabel>🔄 Matched Order:</DetailLabel>
+              <ArrayContainer>
+                {(showMoreClickOrder2[item.game_id]
+                  ? item.click_order2
+                  : item.click_order2.slice(0, 5)
+                ).map((click, index, array) => {
+                  // Check if the current and next items have the same value
+                  const isMatchingPair =
+                    index % 2 === 0 && array[index] === array[index + 1];
+                  const applyGreenColor =
+                    isMatchingPair ||
+                    (index % 2 === 1 && array[index] === array[index - 1]);
+
+                  return (
+                    <ArrayItem
+                      key={index}
+                      style={{
+                        backgroundColor: applyGreenColor ? "green" : "#4a56e2",
+                      }}
+                    >
+                      <Text>{click}</Text>
+                    </ArrayItem>
+                  );
+                })}
+              </ArrayContainer>
+
+              {item.click_order2.length > 5 && (
+                <ToggleButton
+                  onPress={() => toggleShowMore(item.game_id, "clickOrder2")}
+                >
+                  <ButtonText>
+                    <Text>
+                      {showMoreClickOrder2[item.game_id]
+                        ? "Show Less"
+                        : "Show More"}
+                    </Text>
                   </ButtonText>
                 </ToggleButton>
               )}

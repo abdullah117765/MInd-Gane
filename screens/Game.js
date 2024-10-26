@@ -73,6 +73,7 @@ export default function Game({ route, navigation }) {
   const clickTimes = useRef([]); //track time between clicks
   const clickTimes2 = useRef([]); //track time between clicks
   const clickOrder = useRef({}); // track order of clicks
+  const clickOrder2 = useRef([]); // track order of clicks
   const gameStartTime = useRef(null);
   const gameEndTime = useRef(null);
   let wins = 0;
@@ -238,6 +239,7 @@ export default function Game({ route, navigation }) {
     FCount.current = 0;
     clickTimes.current = [];
     clickTimes2.current = [];
+    clickOrder2.current = [];
     clickOrder.current = {};
     wins = 0;
     losses = 0;
@@ -282,7 +284,7 @@ export default function Game({ route, navigation }) {
 
     clickOrder.current[cardName].push(totalClicks + 1);
 
-    // clickOrder.current.push(cards[index].name);
+    clickOrder2.current.push(cards[index].name);
 
     setSelectedCards((prev) => [...prev, index]);
     setCards((prevCards) => {
@@ -353,6 +355,7 @@ export default function Game({ route, navigation }) {
       total_clicks: FCount.current,
       time_between_clicks: clickTimes.current,
       click_order: clickOrder.current,
+      click_order2: clickOrder2.current,
       game_duration: gameDuration,
     };
 

@@ -323,6 +323,7 @@ export const saveGameStatsFunction = async (stats) => {
     total_clicks,
     time_between_clicks,
     click_order,
+    click_order2,
     game_duration,
   } = stats;
 
@@ -336,7 +337,8 @@ export const saveGameStatsFunction = async (stats) => {
     losses,
     total_clicks,
     time_between_clicks, // Assuming this is an array of numbers
-    click_order, // Assuming this is an array of strings
+    click_order,
+    click_order2, // Assuming this is an array of strings
     game_duration,
   };
 
