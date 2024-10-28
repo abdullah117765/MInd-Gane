@@ -1,6 +1,5 @@
-import { useFocusEffect } from "@react-navigation/native";
 import { Audio } from "expo-av";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Image,
   Modal,
@@ -192,22 +191,29 @@ export default function Game({ route, navigation }) {
     }
   };
 
-  // Detect when the user navigates away from the game screen
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        // The game was incomplete when the user navigated away
-        handleIncompleteGame();
-      };
-    }, [])
-  );
+  // // Detect when the user navigates away from the game screen
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     return () => {
+  //       // The game was incomplete when the user navigated away
+  //       console.log("time interval", timerIntervalRef.current);
+  //       if (
+  //         // timerIntervalRef.current > 0 &&
+  //         wins.current != 0 ||
+  //         losses.current != 0
+  //       ) {
+  //         handleIncompleteGame();
+  //       }
+  //     };
+  //   }, [])
+  // );
 
-  const handleIncompleteGame = () => {
-    incomplete += 1;
-    gameEndTime.current = new Date();
-    console.log("incomlete", incomplete);
-    saveGameStats2();
-  };
+  // const handleIncompleteGame = () => {
+  //   incomplete += 1;
+  //   gameEndTime.current = new Date();
+  //   console.log("incomlete", incomplete);
+  //   saveGameStats2();
+  // };
 
   const startGame = () => {
     // Stop existing background music if restarting the game
@@ -309,10 +315,11 @@ export default function Game({ route, navigation }) {
     if (matchedPairs + 1 === DRUGS.length) {
       wins += 1;
       gameEndTime.current = new Date();
-      // +1 because setMatchedPairs is async
+      clearInterval(timerIntervalRef.current); // Stop the timer
+
       setMessage("Congratulations! You matched all pairs.");
       stopBackgroundMusic(); // Stop the background music on game completion
-      clearInterval(timerIntervalRef.current); // Stop the timer
+
       saveGameStats2(); // Save win stats   you win saving the stats to supabase
     }
     setSelectedCards([]);

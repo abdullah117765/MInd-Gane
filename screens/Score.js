@@ -38,11 +38,11 @@ const Score = () => {
         ...prev,
         [gameId]: !prev[gameId],
       }));
-    } else if (type === "clickOrder") {
-      setShowMoreClickOrder((prev) => ({
-        ...prev,
-        [gameId]: !prev[gameId],
-      }));
+      // } else if (type === "clickOrder") {
+      //   setShowMoreClickOrder((prev) => ({
+      //     ...prev,
+      //     [gameId]: !prev[gameId],
+      //   }));
     } else if (type === "clickOrder2") {
       setShowMoreClickOrder2((prev) => ({
         ...prev,
@@ -103,9 +103,9 @@ const Score = () => {
       <FlatList
         data={gameStats}
         keyExtractor={(item) => item.game_id.toString()}
-        renderItem={({ item, index }) => (
+        renderItem={({ item }) => (
           <GameCard>
-            <GameTitle>Game {index + 1}</GameTitle>
+            <GameTitle>Game Id :{item.game_id}</GameTitle>
 
             <GameDetail>
               <DetailLabel>🔥 Total Clicks:</DetailLabel>
@@ -215,7 +215,7 @@ const Score = () => {
                   }
                 })()}
               </ArrayContainer>
-              {Object.keys(item.click_order).length > 5 && (
+              {/* {Object.keys(item.click_order).length > 5 && (
                 <ToggleButton
                   onPress={() => toggleShowMore(item.game_id, "clickOrder")}
                 >
@@ -225,7 +225,7 @@ const Score = () => {
                       : "Show More"}
                   </ButtonText>
                 </ToggleButton>
-              )}
+              )} */}
             </GameDetail>
 
             <GameDetail>
@@ -236,7 +236,7 @@ const Score = () => {
             <GameDetail>
               <DetailLabel>⌛ Game Status:</DetailLabel>
               <DetailValue>
-                {item.win
+                {item.wins
                   ? "Win"
                   : item.losses
                   ? "Loss"
